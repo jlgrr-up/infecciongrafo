@@ -11,3 +11,9 @@ border:1px solid gray;
 margin:auto;
 background:white;
 }
+
+#turn{
+font-size:20px;
+font-weight:bold;
+margin-bottom:10px;
+}

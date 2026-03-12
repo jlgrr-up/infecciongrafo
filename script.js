@@ -5,8 +5,10 @@ let network
 
 let turn = 1
 let firstMove = true
+let moveMade = false
 
-const NODE_COUNT = 7
+const NODE_COUNT = 18
+const EXTRA_EDGES = 25
 
 const COLORS = {
 free:"#cccccc",
@@ -29,29 +31,52 @@ state:"free"
 
 }
 
-for(let i=1;i<=NODE_COUNT;i++){
-for(let j=i+1;j<=NODE_COUNT;j++){
+for(let i=2;i<=NODE_COUNT;i++){
+
+let parent=Math.floor(Math.random()*(i-1))+1
 
 edges.add({
 from:i,
-to:j
+to:parent
 })
 
 }
+
+for(let i=0;i<EXTRA_EDGES;i++){
+
+let a=Math.floor(Math.random()*NODE_COUNT)+1
+let b=Math.floor(Math.random()*NODE_COUNT)+1
+
+if(a!==b){
+
+edges.add({
+from:a,
+to:b
+})
+
+}
+
 }
 
 }
 
 function drawGraph(){
 
-let container = document.getElementById("network")
+let container=document.getElementById("network")
 
 let data={
 nodes:nodes,
 edges:edges
 }
 
-network = new vis.Network(container,data,{})
+network=new vis.Network(container,data,{
+
+physics:{
+enabled:true,
+stabilization:false
+}
+
+})
 
 network.on("click",handleClick)
 
@@ -71,23 +96,21 @@ infectNode(id)
 
 firstMove=false
 
-}else{
+return
+
+}
 
 if(node.state!=="available") return
 
 infectNode(id)
 
-}
-
 checkRemovals()
-
-updateTurn()
-
-checkWin()
 
 }
 
 function infectNode(id){
+
+moveMade = true
 
 nodes.update({
 id:id,
@@ -99,9 +122,9 @@ let neighbors=network.getConnectedNodes(id)
 
 neighbors.forEach(n=>{
 
-let node=nodes.get(n)
+let neighbor=nodes.get(n)
 
-if(node.state==="free"){
+if(neighbor && neighbor.state==="free"){
 
 nodes.update({
 id:n,
@@ -117,9 +140,9 @@ state:"available"
 
 function checkRemovals(){
 
-let allNodes=nodes.get()
+let currentNodes=nodes.get()
 
-allNodes.forEach(node=>{
+currentNodes.forEach(node=>{
 
 if(node.state!=="taken") return
 
@@ -138,34 +161,54 @@ allRed=false
 })
 
 if(allRed){
+
 nodes.remove(node.id)
+
 }
 
 })
 
 }
 
-function updateTurn(){
+function endTurn(){
+
+if(!moveMade) return
+
+checkRemovals()
+
+checkWin()
 
 turn = turn===1 ? 2 : 1
 
 document.getElementById("turn").innerText="Turno: Jugador "+turn
 
+moveMade=false
+
 }
 
 function checkWin(){
 
-let allNodes=nodes.get()
+let allNodes = nodes.get()
 
-let availableExists=false
+let availableExists = false
 
-allNodes.forEach(n=>{
-if(n.state==="available") availableExists=true
+allNodes.forEach(n => {
+
+if(n.state === "available"){
+availableExists = true
+}
+
 })
 
 if(!availableExists && !firstMove){
 
-alert("Jugador "+(turn===1?2:1)+" gana!")
+let winner = (turn === 1) ? 2 : 1
+
+setTimeout(() => {
+
+alert("🏆 Jugador " + winner + " gana!")
+
+}, 100)
 
 }
 
@@ -175,14 +218,26 @@ function resetGame(){
 
 turn=1
 firstMove=true
+moveMade=false
 
 document.getElementById("turn").innerText="Turno: Jugador 1"
 
 generateGraph()
-
 drawGraph()
 
 }
+
+document.addEventListener("keydown", function(event){
+
+if(event.code==="Space"){
+
+event.preventDefault()
+
+endTurn()
+
+}
+
+})
 
 generateGraph()
 drawGraph()
