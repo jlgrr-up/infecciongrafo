@@ -15,6 +15,30 @@
 
 <p id="turn">Turno: Jugador 1</p>
 
+<details id="rules">
+<summary>Reglas del juego</summary>
+
+<p>
+<b>Colonización de Nodos</b> es un juego combinatorio para dos jugadores jugado sobre un grafo.
+El juego inicia con un nodo infectado aleatoriamente. En cada turno, el jugador puede expandir
+la infección seleccionando nodos vecinos disponibles (azules). Los jugadores pueden infectar
+varios nodos durante su turno.
+</p>
+
+<p>
+Al terminar el turno se evalúa el colapso del grafo: un nodo desaparece si todos sus vecinos
+restantes están infectados o si queda aislado. Los jugadores se alternan expandiendo la región
+infectada hasta que ya no existan movimientos legales. </p>
+<p><b>El jugador que realiza la última expansión válida gana.</b> </p>
+
+<p>
+<b>Controles:</b><br>
+• Click en nodos azules → infectar nodo<br>
+• Barra espaciadora o botón → terminar turno
+</p>
+
+</details>
+
 <!--- <p>Instrucciones: En este juego, cada jugador toma turnos para infectar un nodo en el grafo. El objetivo es ser el último jugador en infectar un nodo. Si un jugador no puede infectar ningún nodo, pierde.</p> -->
 <p id="instructions">Dar click a la barra espaciadora para cambiar de turno</p> 
 
