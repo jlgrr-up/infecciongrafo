@@ -4,11 +4,9 @@ let edges = new vis.DataSet()
 let network
 
 let turn = 1
-let firstMove = true
-let moveMade = false
 
 const NODE_COUNT = 18
-const EXTRA_EDGES = 25
+const EXTRA_EDGES = 20
 
 const COLORS = {
 free:"#cccccc",
@@ -31,6 +29,8 @@ state:"free"
 
 }
 
+/* árbol base para asegurar conectividad */
+
 for(let i=2;i<=NODE_COUNT;i++){
 
 let parent=Math.floor(Math.random()*(i-1))+1
@@ -41,6 +41,8 @@ to:parent
 })
 
 }
+
+/* aristas extra */
 
 for(let i=0;i<EXTRA_EDGES;i++){
 
@@ -70,53 +72,32 @@ edges:edges
 }
 
 network=new vis.Network(container,data,{
-
-physics:{
-enabled:true,
-stabilization:false
-}
-
+physics:{enabled:true}
 })
 
 network.on("click",handleClick)
 
 }
 
-function handleClick(params){
+/* nodo inicial aleatorio */
 
-if(params.nodes.length===0) return
+function startGame(){
 
-let id=params.nodes[0]
-
-let node=nodes.get(id)
-
-if(firstMove){
-
-infectNode(id)
-
-firstMove=false
-
-return
-
-}
-
-if(node.state!=="available") return
-
-infectNode(id)
-
-checkRemovals()
-
-}
-
-function infectNode(id){
-
-moveMade = true
+let startNode=Math.floor(Math.random()*NODE_COUNT)+1
 
 nodes.update({
-id:id,
+id:startNode,
 color:COLORS.taken,
 state:"taken"
 })
+
+openNeighbors(startNode)
+
+}
+
+/* abrir vecinos */
+
+function openNeighbors(id){
 
 let neighbors=network.getConnectedNodes(id)
 
@@ -137,6 +118,38 @@ state:"available"
 })
 
 }
+
+function handleClick(params){
+
+if(params.nodes.length===0) return
+
+let id=params.nodes[0]
+
+let node=nodes.get(id)
+
+if(!node) return
+
+if(node.state!=="available") return
+
+infectNode(id)
+
+}
+
+function infectNode(id){
+
+nodes.update({
+id:id,
+color:COLORS.taken,
+state:"taken"
+})
+
+checkRemovals()
+
+checkWin()
+
+}
+
+/* eliminar nodos cerrados */
 
 function checkRemovals(){
 
@@ -170,11 +183,19 @@ nodes.remove(node.id)
 
 }
 
+/* fin de turno */
+
 function endTurn(){
 
-if(!moveMade) return
+let takenNodes=nodes.get({
+filter:function(n){
+return n.state==="taken"
+}
+})
 
-checkRemovals()
+takenNodes.forEach(n=>{
+openNeighbors(n.id)
+})
 
 checkWin()
 
@@ -182,54 +203,47 @@ turn = turn===1 ? 2 : 1
 
 document.getElementById("turn").innerText="Turno: Jugador "+turn
 
-moveMade=false
-
 }
+
+/* victoria correcta */
 
 function checkWin(){
 
-let allNodes = nodes.get()
+let remaining=nodes.get()
 
-let availableExists = false
+if(remaining.length===0){
 
-allNodes.forEach(n => {
-
-if(n.state === "available"){
-availableExists = true
-}
-
-})
-
-if(!availableExists && !firstMove){
-
-let winner = (turn === 1) ? 2 : 1
-
-setTimeout(() => {
-
-alert("🏆 Jugador " + winner + " gana!")
-
-}, 100)
+alert("Jugador "+turn+" gana!")
 
 }
 
 }
+
+/* reset */
 
 function resetGame(){
 
 turn=1
-firstMove=true
-moveMade=false
 
 document.getElementById("turn").innerText="Turno: Jugador 1"
 
 generateGraph()
+
 drawGraph()
+
+startGame()
 
 }
 
+/* iniciar */
+
+generateGraph()
+drawGraph()
+startGame()
+
 document.addEventListener("keydown", function(event){
 
-if(event.code==="Space"){
+if(event.code === "Space"){
 
 event.preventDefault()
 
@@ -238,6 +252,3 @@ endTurn()
 }
 
 })
-
-generateGraph()
-drawGraph()
